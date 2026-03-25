@@ -24,11 +24,43 @@ public class Order {
     @Column(name = "total_amount")
     private Double totalAmount;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @Column(name = "discount")
+    private Double discount = 0.0; // Lưu % giảm giá (VD: 10.0)
+
+    @Column(name = "tax")
+    private Double tax = 10.0;     // Lưu % thuế VAT (VD: 10.0)
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private OrderStatus status = OrderStatus.PENDING; 
+
+    @Column(name = "cancel_reason", length = 500)
+    private String cancelReason;
+
+    @Column(name = "payment_method")
+    private String paymentMethod; // "CASH", "CARD", "QR"
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JsonManagedReference
     private List<OrderItem> items = new ArrayList<>();
 
+    // Tự động gán ngày giờ hiện tại trước khi lưu vào Database
+    @PrePersist
+    protected void onCreate() {
+        if (this.orderDate == null) {
+            this.orderDate = LocalDateTime.now();
+        }
+    }
+
     public Order() {
-        this.orderDate = LocalDateTime.now();
+        this.status = OrderStatus.PENDING;
+        this.discount = 0.0;
+        this.tax = 10.0;
+    }
+
+    public enum OrderStatus {
+        PENDING,   
+        PAID,      
+        CANCELLED  
     }
 }

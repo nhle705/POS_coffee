@@ -6,348 +6,259 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
     <style>
-        :root {
-            --primary-gold: #fbbf24;
-            --bg-body: #0f172a;
-            --glass-bg: rgba(30, 41, 59, 0.7);
-            --card-hover: #1e293b;
-        }
-
-        body { 
-            background-color: var(--bg-body); 
-            color: #f8fafc; 
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-image: radial-gradient(circle at top right, #1e293b, #0f172a);
-            min-height: 100vh;
-        }
-
-        /* Navbar Style */
+        :root { --primary-gold: #fbbf24; --bg-body: #0f172a; --glass-bg: rgba(30, 41, 59, 0.7); }
+        body { background-color: var(--bg-body); color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; min-height: 100vh; }
         .navbar { background: rgba(15, 23, 42, 0.9) !important; backdrop-filter: blur(10px); border-bottom: 1px solid #334155; }
-        .nav-link { font-weight: 600; transition: 0.3s; }
-        .nav-link:hover { color: var(--primary-gold) !important; }
-
-        /* Product Card Glass Effect */
-        .product-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer;
-        }
-        .product-card:hover {
-            transform: translateY(-8px);
-            border-color: var(--primary-gold);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-            background: var(--card-hover);
-        }
-        .icon-box {
-            width: 60px; height: 60px;
-            background: rgba(251, 191, 36, 0.1);
-            border-radius: 15px;
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 15px;
-            color: var(--primary-gold);
-        }
-
-        /* Cart Container */
-        .cart-container {
-            background: var(--glass-bg);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            height: 88vh;
-            position: sticky; top: 20px;
-        }
-        .cart-item-row {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-left: 3px solid transparent;
-            transition: 0.2s;
-        }
-        .cart-item-row:hover { border-left-color: var(--primary-gold); background: rgba(255, 255, 255, 0.05); }
-
-        /* Custom Input */
-        .form-control-custom {
-            background: rgba(15, 23, 42, 0.5) !important;
-            border: 1px solid #334155 !important;
-            color: white !important;
-            border-radius: 10px;
-        }
-        .form-control-custom:focus { border-color: var(--primary-gold) !important; box-shadow: none; }
-
-        /* Buttons */
-        .btn-checkout {
-            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
-            border: none; color: #000; font-weight: 700;
-            border-radius: 14px; padding: 15px;
-            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
-        }
-        .btn-checkout:hover { transform: scale(1.02); opacity: 0.9; }
-
-        #cart-items { overflow-y: auto; scrollbar-width: thin; }
+        .product-card { background: var(--glass-bg); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; transition: 0.3s; cursor: pointer; }
+        .product-card:hover { transform: translateY(-5px); border-color: var(--primary-gold); background: #1e293b; }
+        .cart-container { background: var(--glass-bg); border-radius: 24px; height: 88vh; position: sticky; top: 20px; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .cart-item-row { background: rgba(255, 255, 255, 0.03); border-radius: 12px; padding: 10px; margin-bottom: 8px; }
+        .form-control-custom { background: rgba(15, 23, 42, 0.5) !important; border: 1px solid #334155 !important; color: white !important; }
+        .btn-checkout { background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); border: none; color: #000; font-weight: 700; border-radius: 12px; padding: 12px; }
+        #cart-items { overflow-y: auto; }
+        @media print { @page { margin: 0; } body { margin: 0; } }
     </style>
 </head>
 <body class="container-fluid py-0">
 
-   <nav class="navbar navbar-expand-lg navbar-dark sticky-top mb-4">
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top mb-4">
     <div class="container-fluid">
         <a class="navbar-brand d-flex align-items-center" href="/">
-            <span class="bg-warning text-dark rounded-circle p-2 me-2">
-                <i class="fas fa-mug-hot"></i>
-            </span>
-            <span class="fw-bold tracking-tight">HUY COFFEE <span class="text-warning">POS</span></span>
+            <span class="bg-warning text-dark rounded-circle p-2 me-2"><i class="fas fa-mug-hot"></i></span>
+            <span class="fw-bold">HUY COFFEE <span class="text-warning">POS</span></span>
         </a>
-
         <div class="navbar-nav ms-auto">
-            <a class="nav-link px-3" href="/">
-                <i class="fas fa-home me-1"></i> Trang chủ
-            </a>
-            
-            <a class="nav-link px-3 active text-warning" href="/pos">
-                <i class="fas fa-shopping-cart me-1"></i> Bán hàng
-            </a>
-
-            <a class="nav-link px-3" href="/order-history">
-                <i class="fas fa-chart-line me-1"></i> Doanh thu
-            </a>
+            <a class="nav-link px-3" href="/"><i class="fas fa-home me-1"></i> Trang chủ</a>
+            <a class="nav-link px-3 active text-warning" href="/pos"><i class="fas fa-shopping-cart me-1"></i> Bán hàng</a>
+            <a class="nav-link px-3" href="/order-history"><i class="fas fa-chart-line me-1"></i> Doanh thu</a>
         </div>
     </div>
 </nav>
 
-    <div class="row px-3">
-        <div class="col-lg-8">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="fw-bold"><i class="fas fa-list-ul text-warning me-2"></i>Thực đơn tinh hoa</h3>
-                <span class="badge bg-secondary rounded-pill">Sẵn sàng phục vụ</span>
-            </div>
-            
-            <div class="row row-cols-1 row-cols-md-3 g-4">
-                <div class="col" th:each="product : ${listProducts}">
-                    <div class="card h-100 product-card p-4 text-center"
-                         th:onclick="addToCart([[${product.name}]], [[${product.price}]])">
-                        <div class="icon-box">
-                            <i th:class="${product.category == 'Bánh' ? 'fas fa-cookie' : 'fas fa-coffee'} + ' fa-2xl'"></i>
-                        </div>
-                        <h5 class="fw-bold mb-1" th:text="${product.name}"></h5>
-                        <p class="text-warning fw-bold fs-5 mb-0" 
-                           th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="cart-container p-4 d-flex flex-column shadow-lg">
-                <div class="d-flex align-items-center mb-3">
-                    <i class="fas fa-receipt text-warning fa-lg me-2"></i>
-                    <h4 class="mb-0 fw-bold">Chi tiết hóa đơn</h4>
-                </div>
-
-                <div class="p-3 rounded-4 mb-3 border border-secondary" style="background: rgba(255,255,255,0.02)">
-                    <div class="row g-2 mb-2">
-                        <div class="col-6">
-                            <label class="small text-secondary fw-bold mb-1">BÀN SỐ</label>
-                            <input type="number" id="table-number" class="form-control form-control-custom" placeholder="00">
-                        </div>
-                        <div class="col-6">
-                            <label class="small text-secondary fw-bold mb-1">THU NGÂN</label>
-                            <input type="text" id="cashier-name" class="form-control form-control-custom" value="Lê Ngọc Huy">
-                        </div>
-                    </div>
-                    <label class="small text-secondary fw-bold mb-1">TIỀN KHÁCH ĐƯA</label>
-                    <div class="input-group">
-                        <input type="number" id="customer-cash" class="form-control form-control-custom" placeholder="Nhập số tiền..." oninput="calculateChange()">
-                        <span class="input-group-text bg-dark border-secondary text-secondary">đ</span>
-                    </div>
-                </div>
-
-                <div id="cart-items" class="flex-grow-1 pe-2">
-                    </div>
-
-                <div class="border-top border-secondary pt-3 mt-3">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-secondary">Tiền trả lại:</span>
-                        <span id="change-amount" class="text-info fw-bold">0 đ</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <span class="fs-4 fw-bold">Tổng cộng</span>
-                        <span id="total-price" class="fs-2 fw-bold text-success">0 đ</span>
-                    </div>
-                    
-                    <button class="btn btn-checkout w-100 mb-3" onclick="checkout()">
-                        <i class="fas fa-check-circle me-2"></i>HOÀN TẤT THANH TOÁN
-                    </button>
-                    
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <button class="btn btn-outline-warning w-100 rounded-3" onclick="printReceipt()">
-                                <i class="fas fa-print me-1"></i> In Bill
-                            </button>
-                        </div>
-                        <div class="col-6">
-                            <button class="btn btn-outline-danger w-100 rounded-3" onclick="clearCart()">
-                                <i class="fas fa-trash-alt me-1"></i> Hủy
-                            </button>
-                        </div>
-                    </div>
+<div class="row px-3">
+    <div class="col-lg-8">
+        <h3 class="fw-bold mb-4"><i class="fas fa-list-ul text-warning me-2"></i>Thực đơn tinh hoa</h3>
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            <div class="col" th:each="product : ${listProducts}">
+                <div class="card h-100 product-card p-4 text-center" th:onclick="addToCart([[${product.name}]], [[${product.price}]])">
+                    <div class="icon-box text-warning mb-3"><i th:class="${product.category == 'Bánh' ? 'fas fa-cookie' : 'fas fa-coffee'} + ' fa-2xl'"></i></div>
+                    <h5 class="fw-bold" th:text="${product.name}"></h5>
+                    <p class="text-warning fw-bold fs-5 mb-0" th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></p>
                 </div>
             </div>
         </div>
     </div>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        let cart = [];
-
-        function addToCart(name, price) {
-            let item = cart.find(i => i.name === name);
-            if (item) { item.qty++; } 
-            else { cart.push({name, price: parseFloat(price), qty: 1}); }
-            updateUI();
-        }
-
-        function updateUI() {
-            let html = '';
-            let total = 0;
-            cart.forEach(item => {
-                let subTotal = item.price * item.qty;
-                total += subTotal;
-                html += `
-                    <div class="cart-item-row d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="fw-bold text-white">${item.name}</div>
-                            <small class="text-secondary">${item.qty} x ${item.price.toLocaleString()} đ</small>
-                        </div>
-                        <div class="text-warning fw-bold">${subTotal.toLocaleString()} đ</div>
-                    </div>`;
-            });
-            document.getElementById('cart-items').innerHTML = html;
-            document.getElementById('total-price').innerText = total.toLocaleString() + ' đ';
-            calculateChange();
-        }
-
-        function calculateChange() {
-            let total = parseFloat(document.getElementById('total-price').innerText.replace(/[^0-9]/g, '')) || 0;
-            let cash = parseFloat(document.getElementById('customer-cash').value) || 0;
-            let change = cash - total;
-            document.getElementById('change-amount').innerText = (change > 0 ? change : 0).toLocaleString() + ' đ';
-        }
-
-        function clearCart() { 
-            Swal.fire({
-                title: 'Xóa giỏ hàng?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'Đúng, xóa hết!'
-            }).then((result) => { if (result.isConfirmed) { cart = []; updateUI(); } });
-        }
-
-        function checkout() {
-            let totalValue = parseFloat(document.getElementById('total-price').innerText.replace(/[^0-9]/g, ''));
-            if (totalValue <= 0) return Swal.fire('Oops!', 'Vui lòng chọn món!', 'error');
-
-            fetch('/api/orders/save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ totalAmount: totalValue, cart: cart })
-            })
-            .then(response => {
-                if (response.ok) {
-                    Swal.fire('Thành công!', 'Đơn hàng đã được lưu.', 'success').then(() => {
-                        printReceipt();
-                        cart = []; updateUI();
-                        window.location.href = "/order-history";
-                    });
-                }
-            });
-        }
-
-        // --- HÀM IN BILL ĐÃ TINH CHỈNH THEO Ý HUY ---
-        function printReceipt() {
-            if (cart.length === 0) return;
+    <div class="col-lg-4">
+        <div class="cart-container p-4 d-flex flex-column shadow-lg">
+            <h4 class="fw-bold mb-3"><i class="fas fa-receipt text-warning me-2"></i>Chi tiết hóa đơn</h4>
             
-            let table = document.getElementById('table-number').value || "Mang về";
-            let cashier = document.getElementById('cashier-name').value;
-            let totalText = document.getElementById('total-price').innerText;
-            let totalValue = parseFloat(totalText.replace(/[^0-9]/g, ''));
-            let customerCash = parseFloat(document.getElementById('customer-cash').value) || totalValue;
-            let change = customerCash - totalValue;
-
-            let now = new Date();
-            let dateStr = now.toLocaleDateString('vi-VN');
-            let timeOut = now.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
-            // Giả lập giờ vào là 30 phút trước để bill trông thật hơn
-            let timeIn = new Date(now.getTime() - 30 * 60000).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
-
-            let content = `
-                <div style="width: 300px; font-family: 'Courier New', Courier, monospace; padding: 10px; border: 1px solid #000; color: #000;">
-                    <h2 style="text-align: center; margin: 0; font-family: sans-serif;">HUY COFFEE</h2>
-                    <p style="text-align: center; font-size: 11px; margin: 2px 0;">Đ/c: 123 Phan Thiết, Bình Thuận</p>
-                    <p style="text-align: center; font-size: 11px; margin: 2px 0;">SĐT: 0123.456.789</p>
-                    
-                    <h3 style="text-align: center; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 5px 0; margin: 10px 0;">PHIẾU THANH TOÁN</h3>
-                    
-                    <div style="font-size: 12px; display: flex; flex-wrap: wrap; line-height: 1.6;">
-                        <div style="width: 50%;"><b>Bàn:</b> ${table}</div>
-                        <div style="width: 50%; text-align: right;"><b>NV:</b> ${cashier}</div>
-                        <div style="width: 50%;"><b>Giờ vào:</b> ${timeIn}</div>
-                        <div style="width: 50%; text-align: right;"><b>Giờ ra:</b> ${timeOut}</div>
-                        <div style="width: 100%;"><b>Ngày:</b> ${dateStr}</div>
+            <div class="p-3 rounded-4 mb-3 border border-secondary bg-dark bg-opacity-25">
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="small text-secondary fw-bold">BÀN SỐ</label>
+                        <input type="number" id="table-number" class="form-control form-control-custom" placeholder="00">
                     </div>
-
-                    <table style="width: 100%; font-size: 13px; border-collapse: collapse; margin-top: 10px;">
-                        <thead>
-                            <tr style="border-bottom: 1px dashed #000;">
-                                <th align="left" style="padding-bottom: 5px;">Tên món</th>
-                                <th align="center">SL</th>
-                                <th align="right">T.Tiền</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${cart.map(i => `
-                                <tr>
-                                    <td style="padding: 5px 0;">${i.name}</td>
-                                    <td align="center">${i.qty}</td>
-                                    <td align="right">${(i.price * i.qty).toLocaleString()}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                    
-                    <div style="border-top: 1px solid #000; margin-top: 10px; padding-top: 5px;">
-                        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 16px;">
-                            <span>TỔNG CỘNG:</span>
-                            <span>${totalText}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 13px; margin-top: 5px;">
-                            <span>Khách đưa:</span>
-                            <span>${customerCash.toLocaleString()} đ</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 13px; font-style: italic;">
-                            <span>Tiền trả lại:</span>
-                            <span>${(change > 0 ? change : 0).toLocaleString()} đ</span>
-                        </div>
+                    <div class="col-6">
+                        <label class="small text-secondary fw-bold">THU NGÂN</label>
+                        <input type="text" id="cashier-name" class="form-control form-control-custom" value="Lê Ngọc Huy">
                     </div>
-
-                    <div style="text-align: center; margin-top: 20px; font-size: 11px; border-top: 1px dashed #000; padding-top: 10px;">
-                        <p style="margin: 0;">📶 WiFi: <b>HuyCoffee_Free</b></p>
-                        <p style="margin: 3px 0;">🔑 Mật khẩu: <b>88888888</b></p>
-                        <p style="font-weight: bold; margin-top: 10px;">Cảm ơn Quý khách - Hẹn gặp lại!</p>
-                        <p style="font-size: 9px; color: #666; margin-top: 5px;">In lúc: ${now.toLocaleTimeString('vi-VN')} - Hệ thống POS Huy</p>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="small text-secondary fw-bold">GIẢM (%)</label>
+                        <input type="number" id="discount-percent" class="form-control form-control-custom" value="0" min="0" oninput="updateUI()">
                     </div>
-                </div>`;
+                    <div class="col-6">
+                        <label class="small text-secondary fw-bold">THUẾ (%)</label>
+                        <input type="number" id="tax-percent" class="form-control form-control-custom" value="10" min="0" oninput="updateUI()">
+                    </div>
+                </div>
+                <label class="small text-secondary fw-bold">TIỀN KHÁCH ĐƯA</label>
+                <input type="number" id="customer-cash" class="form-control form-control-custom" placeholder="Nhập tiền..." oninput="calculateChange()">
+            </div>
 
-            let win = window.open('', '', 'width=450,height=700');
-            win.document.write('<html><head><title>Print Bill</title></head><body style="display:flex; justify-content:center; padding:20px;">' + content + '</body></html>');
-            win.document.close();
-            win.print();
-        }
-    </script>
+            <div id="cart-items" class="flex-grow-1 pe-2"></div>
+
+            <div class="border-top border-secondary pt-3 mt-3">
+                <div class="d-flex justify-content-between mb-1"><span class="small text-secondary">Tạm tính:</span><span id="subtotal" class="small">0 đ</span></div>
+                <div class="d-flex justify-content-between mb-2"><span>Tiền trả lại:</span><span id="change-amount" class="text-info fw-bold">0 đ</span></div>
+                <div class="d-flex justify-content-between align-items-center mb-4"><span class="fs-4 fw-bold">Tổng cộng</span><span id="total-price" class="fs-2 fw-bold text-success">0 đ</span></div>
+                
+                <button class="btn btn-checkout w-100 mb-2" onclick="checkout()"><i class="fas fa-check-circle me-2"></i>HOÀN TẤT THANH TOÁN</button>
+                <button class="btn btn-outline-info w-100 mb-2" onclick="showQR()"><i class="fas fa-qrcode me-2"></i>XEM MÃ QR</button>
+                <div class="row g-2">
+                    <div class="col-6"><button class="btn btn-outline-warning w-100" onclick="printReceipt()"><i class="fas fa-print"></i> Thử in</button></div>
+                    <div class="col-6"><button class="btn btn-outline-danger w-100" onclick="clearCart()"><i class="fas fa-trash"></i> Hủy</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    let cart = [];
+    const MY_STK = "098722228888";
+    const MY_BANK = "MB"; 
+    const MY_NAME = "LE NGOC HUY";
+
+    function addToCart(name, price) {
+        let item = cart.find(i => i.name === name);
+        if (item) item.qty++; else cart.push({name, price: parseFloat(price), qty: 1});
+        updateUI();
+    }
+
+    function updateUI() {
+        let html = ''; let sub = 0;
+        cart.forEach((item) => {
+            sub += item.price * item.qty;
+            html += `<div class="cart-item-row d-flex justify-content-between align-items-center">
+                <div><div class="fw-bold">${item.name}</div><small class="text-secondary">${item.qty} x ${item.price.toLocaleString()}đ</small></div>
+                <div class="text-warning fw-bold">${(item.price * item.qty).toLocaleString()}đ</div></div>`;
+        });
+        
+        let discP = parseFloat(document.getElementById('discount-percent').value) || 0;
+        let taxP = parseFloat(document.getElementById('tax-percent').value) || 0;
+        
+        let discAmt = (sub * discP) / 100;
+        let taxAmt = ((sub - discAmt) * taxP) / 100;
+        let final = sub - discAmt + taxAmt;
+
+        document.getElementById('cart-items').innerHTML = html;
+        document.getElementById('subtotal').innerText = sub.toLocaleString() + ' đ';
+        document.getElementById('total-price').innerText = Math.round(final).toLocaleString() + ' đ';
+        calculateChange();
+    }
+
+    function calculateChange() {
+        let total = parseFloat(document.getElementById('total-price').innerText.replace(/[^0-9]/g, '')) || 0;
+        let cash = parseFloat(document.getElementById('customer-cash').value) || 0;
+        let change = cash - total;
+        document.getElementById('change-amount').innerText = (change > 0 ? change : 0).toLocaleString() + ' đ';
+    }
+
+    function showQR() {
+        let amount = document.getElementById('total-price').innerText.replace(/[^0-9]/g, '');
+        if (amount <= 0) return Swal.fire('Lỗi', 'Chưa có món!', 'error');
+        let qr = `https://img.vietqr.io/image/${MY_BANK}-${MY_STK}-compact2.png?amount=${amount}&addInfo=HuyCoffee%20Pay`;
+        Swal.fire({
+            title: 'QUÉT MÃ THANH TOÁN',
+            html: `<img src="${qr}" style="width:100%;max-width:280px;border-radius:15px;box-shadow: 0 10px 15px rgba(0,0,0,0.5);">`,
+            background: '#1e293b', confirmButtonText: 'Đã nhận tiền', confirmButtonColor: '#10b981'
+        }).then((r) => { if (r.isConfirmed) checkout(); });
+    }
+
+    function checkout() {
+        let total = document.getElementById('total-price').innerText.replace(/[^0-9]/g, '');
+        if (total <= 0) return Swal.fire('Lỗi', 'Giỏ hàng trống!', 'warning');
+        
+        // Chuẩn bị dữ liệu gửi về API create (theo đúng logic Backend của Huy)
+        const orderData = {
+            totalAmount: total, 
+            discount: document.getElementById('discount-percent').value, 
+            tax: document.getElementById('tax-percent').value, 
+            items: cart.map(i => ({ productName: i.name, quantity: i.qty, price: i.price }))
+        };
+
+        fetch('/api/orders/create', {
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+        }).then(res => { 
+            if (res.ok) { 
+                printReceipt(); // In bill nhiệt
+                Swal.fire({ 
+                    icon:'success', 
+                    title:'Thanh toán xong!', 
+                    text: 'HĐ đã lưu vào Nhật ký.',
+                    showConfirmButton:false, 
+                    timer:1500 
+                }).then(()=> location.href="/order-history"); 
+            } else {
+                Swal.fire('Lỗi', 'Không thể lưu đơn hàng!', 'error');
+            }
+        });
+    }
+
+    function printReceipt() {
+        if (cart.length === 0) return;
+        
+        let table = document.getElementById('table-number').value || "Mang đi";
+        let cashier = document.getElementById('cashier-name').value || "Lê Ngọc Huy";
+        let totalText = document.getElementById('total-price').innerText;
+        let subtotalText = document.getElementById('subtotal').innerText;
+        let discP = document.getElementById('discount-percent').value || 0;
+        let taxP = document.getElementById('tax-percent').value || 10;
+        let cash = parseFloat(document.getElementById('customer-cash').value) || 0;
+        let change = document.getElementById('change-amount').innerText;
+
+        let now = new Date();
+        let dateStr = now.toLocaleDateString('vi-VN');
+        let timeStr = now.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+        let invoiceId = "HĐ" + now.getTime().toString().slice(-6);
+
+        let qrBill = `https://img.vietqr.io/image/${MY_BANK}-${MY_STK}-compact2.png?amount=${totalText.replace(/[^0-9]/g, '')}&addInfo=HuyCoffee%20${invoiceId}`;
+
+        let content = `
+            <div style="width: 280px; font-family: 'Courier New', Courier, monospace; color: #000; padding: 5px; line-height: 1.3;">
+                <div style="text-align: center;">
+                    <h2 style="margin: 0; font-family: sans-serif; letter-spacing: 1px;">HUY COFFEE</h2>
+                    <p style="font-size: 11px; margin: 2px 0;">123 Phan Thiết, Bình Thuận</p>
+                    <p style="font-size: 11px; margin: 0;">SĐT: 0987.xxx.xxx</p>
+                    <div style="border-top: 1px dashed #000; border-bottom: 1px dashed #000; margin: 10px 0; padding: 5px 0; font-weight: bold; font-size: 14px;">PHIẾU THANH TOÁN</div>
+                </div>
+
+                <div style="font-size: 12px; margin-bottom: 10px;">
+                    <div style="display:flex; justify-content:space-between;"><span>HĐ: #${invoiceId}</span><span>Bàn: ${table}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>Ngày: ${dateStr}</span><span>Giờ: ${timeStr}</span></div>
+                    <div>NV: ${cashier}</div>
+                </div>
+
+                <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                    <tr style="border-bottom: 1px solid #000;">
+                        <th align="left">Món</th><th align="center">SL</th><th align="right">Tiền</th>
+                    </tr>
+                    ${cart.map(i => `<tr><td style="padding: 3px 0;">${i.name}</td><td align="center">${i.qty}</td><td align="right">${(i.price * i.qty).toLocaleString()}</td></tr>`).join('')}
+                </table>
+
+                <div style="border-top: 1px solid #000; margin-top: 10px; padding-top: 5px; font-size: 12px;">
+                    <div style="display:flex; justify-content:space-between;"><span>Tạm tính:</span><span>${subtotalText}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>Giảm giá (${discP}%):</span><span>-${((parseFloat(subtotalText.replace(/[^0-9]/g, '')) * discP) / 100).toLocaleString()}đ</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>Thuế VAT (${taxP}%):</span><span>+${(( (parseFloat(subtotalText.replace(/[^0-9]/g, '')) * (100-discP)/100 ) * taxP) / 100).toLocaleString()}đ</span></div>
+                    <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:16px; margin-top:5px; border-top: 1px dashed #000; padding-top:5px;">
+                        <span>TỔNG CỘNG:</span><span>${totalText}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:5px;"><span>Khách đưa:</span><span>${cash.toLocaleString()}đ</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>Tiền trả lại:</span><span>${change}</span></div>
+                </div>
+
+                <div style="text-align: center; margin-top: 15px; border-top: 1px dashed #000; padding-top: 10px;">
+                    <p style="font-size: 10px; margin-bottom: 5px; font-weight: bold;">QUÉT QR THANH TOÁN</p>
+                    <img src="${qrBill}" style="width: 150px; height: 150px; border: 1px solid #eee;">
+                    <p style="font-size: 11px; margin-top: 5px; font-weight: bold;">STK: ${MY_STK}</p>
+                    <p style="font-size: 11px;">Chủ TK: ${MY_NAME}</p>
+                </div>
+
+                <div style="text-align: center; margin-top: 10px; font-size: 10px; border: 1px solid #000; padding: 4px;">
+                    <p style="margin: 0;"><b>WiFi:</b> Huy Coffee Free / <b>Pass:</b> ${MY_STK}</p>
+                </div>
+                <p style="text-align: center; font-size: 10px; margin-top: 10px; font-style: italic;">Hẹn gặp lại Quý khách!</p>
+            </div>`;
+
+        let iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed'; iframe.style.bottom = '0'; iframe.style.width = '0'; iframe.style.height = '0'; iframe.style.border = '0';
+        document.body.appendChild(iframe);
+        let doc = iframe.contentWindow.document;
+        doc.write("<html><head><style>@page { size: 80mm auto; margin: 0; } body { margin: 5mm; display: flex; justify-content: center; }</style></head><body>" + content + "</body></html>");
+        doc.close();
+        iframe.contentWindow.focus(); 
+        iframe.contentWindow.print();
+        setTimeout(() => { document.body.removeChild(iframe); }, 1000);
+    }
+    
+    function clearCart() { cart = []; updateUI(); }
+</script>
 </body>
 </html>

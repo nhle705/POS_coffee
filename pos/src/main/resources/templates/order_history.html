@@ -2,82 +2,285 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Lịch sử đơn hàng</title>
+    <title>Hệ thống Nhật ký POS - Huy Coffee</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { background-color: #0f172a; color: #f8fafc; font-family: sans-serif; }
         .table-container { background: rgba(30, 41, 59, 0.7); border-radius: 15px; padding: 20px; border: 1px solid #334155; }
-        .table { color: #f8fafc; }
-        .btn-back { margin-bottom: 20px; border-radius: 10px; }
+        .table { color: #f8fafc; vertical-align: middle; }
+        .revenue-box { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #10b981; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .status-badge { padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+        .bg-paid { background-color: #10b981; }
+        .bg-pending { background-color: #f59e0b; color: #1e293b; }
+        .bg-cancelled { background-color: #ef4444; }
+        .role-selector { background: #1e293b; color: #38bdf8; border: 1px solid #334155; font-weight: bold; }
+        .btn-action { min-width: 65px; }
+        .order-checkbox { width: 18px; height: 18px; cursor: pointer; }
+        .modal-content { background-color: #1e293b; color: white; border: 1px solid #475569; border-radius: 15px; }
+        .shift-info { font-size: 0.85rem; background: rgba(0,0,0,0.3); padding: 5px 12px; border-radius: 8px; border: 1px solid #334155; }
+        .chart-container { background: rgba(30, 41, 59, 0.5); border-radius: 15px; padding: 15px; border: 1px solid #334155; margin-bottom: 20px; }
     </style>
 </head>
 <body class="container py-4">
 
-    <a href="/" class="btn btn-outline-warning btn-back">
-        <i class="fas fa-arrow-left me-2"></i> Quay lại trang chủ
-    </a>
+    <div class="d-flex justify-content-between mb-3">
+        <a href="/" class="btn btn-warning fw-bold btn-sm shadow">
+            <i class="fas fa-home me-1"></i> Trang chủ POS
+        </a>
+        <div class="d-flex align-items-center bg-dark px-3 rounded border border-secondary">
+            <i class="fas fa-user-shield me-2 text-info"></i> Quyền: 
+            <select id="currentRole" class="form-select form-select-sm role-selector ms-2 border-0" style="background:none; color:#38bdf8; cursor:pointer;">
+                <option value="STAFF">Nhân viên</option>
+                <option value="ADMIN">Quản lý (Admin)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="revenue-box shadow">
+        <div class="row align-items-center">
+            <div class="col-md-5">
+                <h4 class="text-info mb-1"><i class="fas fa-wallet me-2"></i> Doanh thu thực nhận (PAID)</h4>
+                <h2 class="text-success fw-bold mb-0" id="displayRevenue">0 đ</h2>
+                <div class="d-flex gap-3 mt-2">
+                    <div class="shift-info">🌅 Sáng: <span id="mRev" class="text-warning">0đ</span></div>
+                    <div class="shift-info">🌇 Chiều: <span id="aRev" class="text-warning">0đ</span></div>
+                </div>
+            </div>
+            <div class="col-md-4 text-center border-start border-end border-secondary">
+                <label class="small text-secondary mb-1">Ngày lọc thống kê:</label>
+                <input type="date" id="statsDate" class="form-control form-control-sm bg-dark text-white border-secondary text-center" onchange="loadDailyStats()">
+            </div>
+            <div class="col-md-3 text-end">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary fw-bold btn-sm" onclick="mergeSelected()">
+                        <i class="fas fa-object-group me-1"></i> Gộp đơn đã chọn
+                    </button>
+                    <button class="btn btn-success fw-bold btn-sm" onclick="exportExcel()">
+                        <i class="fas fa-file-csv me-1"></i> Xuất Báo Cáo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-container shadow-sm">
+        <h6 class="text-secondary mb-3"><i class="fas fa-chart-line me-2 text-success"></i> Doanh thu 7 ngày gần nhất</h6>
+        <canvas id="revenueChart" style="max-height: 200px;"></canvas>
+    </div>
+
+    <div class="row mb-3 g-2">
+        <div class="col-md-6 d-flex gap-2">
+            <button class="btn btn-sm btn-outline-light" onclick="filterStatus('ALL')">Tất cả (Ẩn gộp)</button>
+            <button class="btn btn-sm btn-outline-success" onclick="filterStatus('PAID')">Thành công</button>
+            <button class="btn btn-sm btn-outline-danger" onclick="filterStatus('CANCELLED')">Đã hủy</button>
+        </div>
+        <div class="col-md-6">
+            <input type="text" id="searchInput" class="form-control bg-dark text-white border-secondary" placeholder="Tìm Mã đơn (Gõ số)..." onkeyup="searchOrder()">
+        </div>
+    </div>
 
     <div class="table-container shadow-lg">
-        <h2 class="mb-4 text-info fw-bold"><i class="fas fa-history me-2"></i> Nhật ký bán hàng</h2>
-        
-        <table class="table table-hover">
+        <table class="table table-hover" id="orderTable">
             <thead class="table-dark">
                 <tr>
-                    <th>Mã đơn</th>
-                    <th>Ngày giờ</th>
-                    <th>Chi tiết món</th> <th>Tổng tiền</th>
-                    <th class="text-center">Thao tác</th> </tr>
+                    <th width="40px"><input type="checkbox" id="checkAll"></th>
+                    <th>Mã</th> <th>Thời gian</th> <th>Chi tiết món</th> <th>Thành tiền</th> <th>Trạng thái</th> <th class="text-center">Thao tác</th>
+                </tr>
             </thead>
             <tbody>
                 <tr th:each="order : ${listOrders}">
-                    <td th:text="${order.id}"></td>
-                    <td th:text="${#temporals.format(order.orderDate, 'dd/MM/yyyy HH:mm')}"></td>
-                    
-                    <td>
-                        <ul class="list-unstyled mb-0 small">
-                            <li th:each="item : ${order.items}">
-                                <span th:text="${item.productName}"></span> 
-                                <span class="text-warning" th:text="'x' + ${item.quantity}"></span>
-                            </li>
-                        </ul>
+                    <td><input type="checkbox" class="order-checkbox" th:value="${order.id}" th:if="${order.status.name() == 'PENDING'}"></td>
+                    <td class="order-id-cell">
+                        <a href="javascript:void(0)" th:onclick="'printBill(' + ${order.id} + ')'" class="text-info fw-bold" th:text="${order.id}"></a>
                     </td>
-                    
-                    <td class="fw-bold text-success" 
-                        th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
-                    
+                    <td th:text="${#temporals.format(order.orderDate, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td>
+                        <small th:each="i : ${order.items}" class="d-block món-item" th:data-name="${i.productName}" th:data-qty="${i.quantity}">
+                            <span th:text="${i.productName}"></span>(x<span th:text="${i.quantity}"></span>)
+                        </small>
+                    </td>
+                    <td class="fw-bold text-success" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                    <td>
+                        <div th:switch="${order.status.name()}">
+                            <span th:case="'PAID'" class="status-badge bg-paid">Thành công</span>
+                            <span th:case="'PENDING'" class="status-badge bg-pending text-dark">Đang chờ</span>
+                            <span th:case="'CANCELLED'" class="status-badge bg-cancelled">Đã hủy</span>
+                        </div>
+                    </td>
                     <td class="text-center">
-                        <button class="btn btn-sm btn-outline-danger" 
-                                th:onclick="'deleteOrder(' + ${order.id} + ')'">
-                            <i class="fas fa-trash"></i> Xóa
-                        </button>
+                        <div class="d-flex justify-content-center gap-1">
+                            <button th:if="${order.status.name() == 'PENDING'}" class="btn btn-xs btn-success btn-action" th:onclick="'HUY_THAN_TOAN(' + ${order.id} + ')'">Thu</button>
+                            <button th:if="${order.status.name() == 'PENDING'}" class="btn btn-xs btn-info text-white btn-action" th:onclick="'openSplitModal(' + ${order.id} + ')'">Tách</button>
+                            <button class="btn btn-xs btn-primary btn-action" th:onclick="'sendEmail(' + ${order.id} + ')'"><i class="fas fa-envelope"></i> Mail</button>
+                            <a th:if="${order.status.name() == 'PENDING'}" th:href="'/pos?editId=' + ${order.id}" class="btn btn-xs btn-warning text-dark btn-action">Sửa</a>
+                            <button class="btn btn-xs btn-danger btn-action" 
+        th:onclick="'deletePermanently(' + ${order.id} + ')'">
+    <i class="fas fa-trash"></i>
+</button>
+                        </div>
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
 
+    <div class="modal fade" id="splitModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header border-secondary"><h5 class="modal-title">Tách đơn hàng #<span id="splitOrderIdDisplay"></span></h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body" id="splitModalBody"></div><div class="modal-footer border-secondary"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button><button type="button" class="btn btn-primary btn-sm" onclick="confirmSplit()">Xác nhận tách</button></div></div></div></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        function deleteOrder(id) {
+        var currentSplitId = null;
+        var splitModalObj = null;
+
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById('statsDate').valueAsDate = new Date();
+            loadDailyStats();
+            initRevenueChart();
+            splitModalObj = new bootstrap.Modal(document.getElementById('splitModal'));
+        });
+
+        // 1. XÓA VĨNH VIỄN ĐƠN HÀNG KHỎI DB
+        function deletePermanently(id) {
             Swal.fire({
-                title: 'Xác nhận xóa?',
-                text: "Dữ liệu đơn hàng sẽ bị mất vĩnh viễn!",
+                title: 'Xóa vĩnh viễn đơn #' + id + '?',
+                text: "Dữ liệu sẽ mất sạch khỏi hệ thống, ông chắc chưa Huy?",
                 icon: 'warning',
+                background: '#1e293b', color: '#fff',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'Xóa ngay'
-            }).then((result) => {
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Xóa luôn!',
+                cancelButtonText: 'Để lại'
+            }).then(function(result) {
                 if (result.isConfirmed) {
                     fetch('/api/orders/delete/' + id, { method: 'DELETE' })
-                    .then(response => {
-                        if (response.ok) {
-                            Swal.fire('Đã xóa!', 'Đơn hàng đã được loại bỏ.', 'success')
-                            .then(() => location.reload());
+                    .then(function(res) {
+                        if (res.ok) {
+                            Swal.fire('Thành công', 'Đã dọn dẹp đơn hàng!', 'success').then(function(){ location.reload(); });
+                        } else {
+                            Swal.fire('Lỗi', 'Không xóa được đơn này!', 'error');
                         }
                     });
                 }
             });
+        }
+
+        function initRevenueChart() {
+            fetch('/api/orders/revenue-7days').then(function(r){return r.json();}).then(function(data){
+                new Chart(document.getElementById('revenueChart'), {
+                    type: 'line',
+                    data: {
+                        labels: data.map(function(d){return d.date;}),
+                        datasets: [{ label: 'Doanh thu', data: data.map(function(d){return d.revenue;}), borderColor: '#10b981', tension: 0.4, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.1)' }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } } }
+                });
+            });
+        }
+
+        function loadDailyStats() {
+            var date = document.getElementById('statsDate').value;
+            fetch('/api/orders/stats?date=' + date).then(function(r){return r.json();}).then(function(data){
+                document.getElementById('displayRevenue').innerText = data.totalDayRevenue.toLocaleString() + ' đ';
+                document.getElementById('mRev').innerText = data.morningShift.revenue.toLocaleString() + ' đ';
+                document.getElementById('aRev').innerText = data.afternoonShift.revenue.toLocaleString() + ' đ';
+            });
+        }
+
+        function printBill(id) {
+            fetch('/api/orders/' + id).then(function(r){return r.json();}).then(function(order){
+                var itemsHtml = "";
+                order.items.forEach(function(i){ itemsHtml += "<tr><td>" + i.productName + " x" + i.quantity + "</td><td align='right'>" + (i.price * i.quantity).toLocaleString() + "</td></tr>"; });
+                var win = window.open('', '', 'width=450,height=600');
+                win.document.write("<html><body style='font-family:monospace;width:72mm;padding:10px;'><h3>HUY COFFEE</h3><hr><table>" + itemsHtml + "</table><hr><b>TONG: " + order.totalAmount.toLocaleString() + "d</b><script>window.onload=function(){window.print();window.close();}<\/script></body></html>");
+                win.document.close();
+            });
+        }
+
+        function HUY_THAN_TOAN(id) {
+            Swal.fire({
+                title: 'Thu tiền đơn #' + id,
+                background: '#0f172a', color: '#fff',
+                input: 'radio',
+                inputOptions: { 'CASH': '💵 Tiền mặt', 'QR': '📲 QR Code' },
+                showCancelButton: true, confirmButtonText: 'Xác nhận'
+            }).then(function(r){
+                if (r.isConfirmed && r.value) {
+                    fetch('/api/orders/pay/' + id, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ method: r.value })
+                    }).then(function(res){ if(res.ok) location.reload(); });
+                }
+            });
+        }
+
+        function openSplitModal(id) {
+            currentSplitId = id;
+            document.getElementById('splitOrderIdDisplay').innerText = id;
+            var row = Array.from(document.querySelectorAll("#orderTable tbody tr")).find(function(r){ return r.querySelector(".order-id-cell").innerText.trim() == id; });
+            var html = '';
+            row.querySelectorAll(".món-item").forEach(function(item){
+                var name = item.getAttribute('data-name');
+                var qty = item.getAttribute('data-qty');
+                html += '<div class="d-flex justify-content-between mb-3"><span>' + name + ' (Max: ' + qty + ')</span>' +
+                        '<input type="number" class="form-control form-control-sm w-25 split-input" data-name="' + name + '" value="0" min="0" max="' + qty + '"></div>';
+            });
+            document.getElementById('splitModalBody').innerHTML = html;
+            splitModalObj.show();
+        }
+
+        function confirmSplit() {
+            var items = [];
+            document.querySelectorAll(".split-input").forEach(function(inp){ if(parseInt(inp.value) > 0) items.push({ name: inp.getAttribute('data-name'), qty: parseInt(inp.value) }); });
+            if (items.length === 0) return alert("Chọn ít nhất 1 món!");
+            fetch('/api/orders/split', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({originalOrderId: currentSplitId, items: items})}).then(function(){location.reload();});
+        }
+
+        function mergeSelected() {
+            var ids = Array.from(document.querySelectorAll(".order-checkbox:checked")).map(function(cb){return cb.value;});
+            if(ids.length < 2) return Swal.fire('Chọn ít nhất 2 đơn!');
+            fetch('/api/orders/merge', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(ids)}).then(function(){location.reload();});
+        }
+
+        function sendEmail(id) {
+            Swal.fire({ title: 'Gửi hóa đơn qua Mail', input: 'email', showCancelButton: true }).then(function(r){
+                if(r.isConfirmed && r.value) {
+                    Swal.fire({title: 'Đang gửi...', didOpen: function(){Swal.showLoading();}});
+                    fetch('/api/orders/'+id+'/send-email', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email:r.value})}).then(function(res){ if(res.ok) Swal.fire('Thành công'); else Swal.fire('Lỗi gửi mail'); });
+                }
+            });
+        }
+
+        function cancelOrder(id) {
+            if (document.getElementById("currentRole").value !== 'ADMIN') return Swal.fire('Cần quyền Admin!');
+            Swal.fire({title: 'Lý do hủy?', input: 'text', showCancelButton: true}).then(function(r){ if(r.isConfirmed) fetch('/api/orders/cancel/'+id, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({reason: r.value, role: 'ADMIN'})}).then(function(){location.reload();}); });
+        }
+
+        function filterStatus(s) {
+            document.querySelectorAll("#orderTable tbody tr").forEach(function(r){
+                var badge = r.querySelector(".status-badge").innerText;
+                if(s === 'ALL') r.style.display = badge.includes("Đã hủy") ? "none" : "";
+                else r.style.display = badge.includes(s === 'PAID' ? "Thành công" : "Đã hủy") ? "" : "none";
+            });
+        }
+
+        function searchOrder() {
+            var val = document.getElementById("searchInput").value.toUpperCase();
+            document.querySelectorAll("#orderTable tbody tr").forEach(function(r){ r.style.display = r.querySelector(".order-id-cell").innerText.includes(val) ? "" : "none"; });
+        }
+
+        function exportExcel() {
+            var csv = "\uFEFFMa,Ngay,Tien,Trang thai\n";
+            document.querySelectorAll("#orderTable tbody tr").forEach(function(r){ 
+                if(r.style.display !== "none") {
+                    var c = r.querySelectorAll("td");
+                    csv += c[1].innerText + "," + c[2].innerText + "," + c[4].innerText + "," + c[5].innerText.replace(/\s+/g, " ") + "\n";
+                }
+            });
+            var link = document.createElement("a");
+            link.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); link.download = "Bao_cao_HuyCoffee.csv"; link.click();
         }
     </script>
 </body>

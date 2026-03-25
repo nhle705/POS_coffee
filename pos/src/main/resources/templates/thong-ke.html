@@ -1,0 +1,67 @@
+<div class="container mt-4">
+    <h2 class="text-primary">📊 Thống kê doanh thu Huy Coffee</h2>
+    
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <label>Chọn ngày xem thống kê:</label>
+            <input type="date" id="statsDate" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <button onclick="loadStats()" class="btn btn-success mt-4">Xem thống kê</button>
+        </div>
+    </div>
+
+    <div id="statsResult" style="display: none;">
+        <div class="row">
+            <div class="col-md-12 mb-3">
+                <div class="card bg-dark text-white p-3">
+                    <h4>Tổng doanh thu ngày: <span id="totalDayRev" class="text-warning">0</span> đ</h4>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-3 border-info">
+                    <h5 class="text-info">🌅 Ca Sáng (06:00 - 14:00)</h5>
+                    <p>Số đơn: <b id="morningCount">0</b></p>
+                    <p>Doanh thu: <b id="morningRev">0</b> đ</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-3 border-danger">
+                    <h5 class="text-danger">🌇 Ca Chiều (14:00 - 22:00)</h5>
+                    <p>Số đơn: <b id="afternoonCount">0</b></p>
+                    <p>Doanh thu: <b id="afternoonRev">0</b> đ</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Thiết lập ngày mặc định là hôm nay
+    document.getElementById('statsDate').valueAsDate = new Date();
+
+    async function loadStats() {
+        const date = document.getElementById('statsDate').value;
+        if (!date) return alert("Vui lòng chọn ngày!");
+
+        try {
+            // Gọi API mà anh em mình vừa viết ở Controller
+            const response = await fetch(`/api/orders/stats?date=${date}`);
+            const data = await response.json();
+
+            // Hiển thị dữ liệu lên giao diện
+            document.getElementById('statsResult').style.display = 'block';
+            document.getElementById('totalDayRev').innerText = data.totalDayRevenue.toLocaleString();
+            
+            document.getElementById('morningCount').innerText = data.morningShift.count;
+            document.getElementById('morningRev').innerText = data.morningShift.revenue.toLocaleString();
+            
+            document.getElementById('afternoonCount').innerText = data.afternoonShift.count;
+            document.getElementById('afternoonRev').innerText = data.afternoonShift.revenue.toLocaleString();
+
+        } catch (error) {
+            console.error("Lỗi lấy thống kê:", error);
+            alert("Không lấy được dữ liệu thống kê!");
+        }
+    }
+</script>
