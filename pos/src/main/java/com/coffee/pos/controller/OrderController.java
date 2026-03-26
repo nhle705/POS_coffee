@@ -1,16 +1,11 @@
 package com.coffee.pos.controller;
 
-import org.springframework.scheduling.annotation.Async;
 import com.coffee.pos.entity.Order;
 import com.coffee.pos.entity.OrderItem;
 import com.coffee.pos.repository.OrderRepository;
+import com.coffee.pos.service.MailService; // Import service mới
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
-
-
-import jakarta.mail.internet.MimeMessage; 
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 import java.time.LocalDateTime;
@@ -25,28 +20,22 @@ public class OrderController {
     private OrderRepository orderRepository;
 
     @Autowired
-    private JavaMailSender emailSender;
+    private MailService mailService; // Dùng Service thay vì gọi trực tiếp emailSender
 
-    // --- 1. LƯU ĐƠN HÀNG MỚI (BỔ SUNG CHO NÚT THANH TOÁN TẠI POS) ---
+    // --- 1. LƯU ĐƠN HÀNG MỚI ---
     @PostMapping("/create")
     public ResponseEntity<?> createOrder(@RequestBody Order order) {
         try {
             order.setOrderDate(LocalDateTime.now());
-            // Mặc định đơn mới từ POS sẽ là PENDING (Đang chờ - Màu vàng)
             if (order.getStatus() == null) {
                 order.setStatus(Order.OrderStatus.PENDING);
             }
-            
-            // Liên kết Items với Order để tránh lỗi khóa ngoại
             if (order.getItems() != null) {
                 for (OrderItem item : order.getItems()) {
                     item.setOrder(order);
                 }
             }
-            
-            // Tính toán lại tổng tiền cuối cùng dựa trên Tax/Discount trước khi lưu
             order.setTotalAmount(calculateTotal(order));
-            
             orderRepository.save(order);
             return ResponseEntity.ok("Lưu đơn thành công");
         } catch (Exception e) {
@@ -54,8 +43,63 @@ public class OrderController {
         }
     }
 
+    // --- 2. GỬI MAIL HÓA ĐƠN (ĐÃ FIX ASYNC) ---
+    @PostMapping("/{id}/send-email")
+    public ResponseEntity<?> sendEmailInvoice(@PathVariable Long id, @RequestBody Map<String, String> payload) {
+        try {
+            Order order = orderRepository.findById(id).orElseThrow(() -> new Exception("Không thấy đơn"));
+            String customerEmail = payload.get("email");
+            
+            // Tạo nội dung HTML
+            String qrUrl = "https://img.vietqr.io/image/MBBank-098722228888-compact2.png?amount=" 
+                            + order.getTotalAmount() + "&addInfo=Thanh%20toan%20Huy%20Coffee%20" + id;
 
+            // --- TRONG HÀM sendEmailInvoice CỦA OrderController ---
 
+StringBuilder html = new StringBuilder();
+html.append("<div style='background-color:#f1f5f9; padding:20px; font-family:sans-serif;'>");
+html.append("<div style='max-width:500px; margin:auto; background:#fff; border-radius:15px; padding:30px; box-shadow:0 4px 6px rgba(0,0,0,0.1);'>");
+html.append("<h1 style='color:#fbbf24; text-align:center; background:#0f172a; padding:20px; border-radius:10px; margin-bottom:20px;'>HUY COFFEE</h1>");
+
+// --- PHẦN CHI TIẾT MÓN ĂN (BỔ SUNG Ở ĐÂY) ---
+html.append("<h3 style='border-bottom:2px solid #f1f5f9; padding-bottom:10px;'>Chi tiết đơn hàng:</h3>");
+html.append("<table style='width:100%; border-collapse:collapse; margin-bottom:20px;'>");
+html.append("<thead><tr style='text-align:left; color:#64748b; font-size:14px;'><th>Món</th><th>SL</th><th>Giá</th></tr></thead>");
+html.append("<tbody>");
+
+// Vòng lặp lấy từng món trong đơn hàng của Huy
+if (order.getItems() != null) {
+    for (OrderItem item : order.getItems()) {
+        html.append("<tr style='border-bottom:1px solid #f1f5f9;'>");
+        html.append("<td style='padding:10px 0;'>").append(item.getProductName()).append("</td>");
+        html.append("<td style='padding:10px 0;'>x").append(item.getQuantity()).append("</td>");
+        html.append("<td style='padding:10px 0; text-align:right;'>").append(String.format("%,.0f", item.getPrice())).append(" đ</td>");
+        html.append("</tr>");
+    }
+}
+html.append("</tbody></table>");
+
+// --- PHẦN QR VÀ TỔNG TIỀN ---
+html.append("<div style='background:#f8fafc; padding:15px; border-radius:10px; text-align:center;'>");
+html.append("<p style='margin:0; color:#64748b;'>Quét mã để thanh toán nhanh:</p>");
+html.append("<img src='").append(qrUrl).append("' width='200' style='margin:15px auto; border-radius:10px;' />");
+html.append("<h2 style='margin:10px 0; color:#10b981;'>TỔNG: ").append(String.format("%,.0f", order.getTotalAmount())).append(" đ</h2>");
+html.append("</div>");
+
+html.append("<p style='text-align:center; color:#94a3b8; font-size:12px; margin-top:20px;'>Cảm ơn quý khách đã ủng hộ Huy Coffee!</p>");
+html.append("</div></div>");
+
+// Cuối cùng gọi MailService để gửi (Giữ nguyên dòng cũ của ông)
+mailService.sendEmailAsync(customerEmail, "☕ Hóa đơn Huy Coffee - #" + id, html.toString());
+
+            // Trả về OK ngay lập tức, không đợi mail gửi xong
+            return ResponseEntity.ok("Hệ thống đang gửi mail ngầm, quý khách vui lòng kiểm tra sau ít giây.");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Lỗi xử lý yêu cầu: " + e.getMessage());
+        }
+    }
+
+    // --- CÁC HÀM KHÁC GIỮ NGUYÊN ---
     @GetMapping("/revenue")
     public ResponseEntity<?> getTotalRevenue() {
         try {
@@ -74,41 +118,6 @@ public class OrderController {
         return orderRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
-
-    @Async
-@PostMapping("/{id}/send-email")
-public ResponseEntity<?> sendEmailInvoice(@PathVariable Long id, @RequestBody Map<String, String> payload) {
-        try {
-            Order order = orderRepository.findById(id).orElseThrow(() -> new Exception("Không thấy đơn"));
-            String customerEmail = payload.get("email");
-            
-            MimeMessage mimeMessage = emailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-            
-            helper.setFrom("Huy Coffee <lehuy070505@gmail.com>");
-            helper.setTo(customerEmail);
-            helper.setSubject("☕ Hóa đơn & Thanh toán Huy Coffee - #" + id);
-
-            String qrUrl = "https://img.vietqr.io/image/MBBank-098722228888-compact2.png?amount=" 
-                            + order.getTotalAmount() + "&addInfo=Thanh%20toan%20Huy%20Coffee%20" + id;
-
-            StringBuilder html = new StringBuilder();
-            html.append("<div style='background-color:#f1f5f9; padding:20px; font-family:sans-serif;'>");
-            html.append("<div style='max-width:500px; margin:auto; background:#fff; border-radius:15px; padding:30px; box-shadow:0 4px 6px rgba(0,0,0,0.1);'>");
-            html.append("<h1 style='color:#fbbf24; text-align:center; background:#0f172a; padding:20px; border-radius:10px;'>HUY COFFEE</h1>");
-            html.append("<p style='text-align:center;'>Quét mã để thanh toán nhanh:</p>");
-            html.append("<img src='").append(qrUrl).append("' width='250' style='display:block; margin:20px auto; border-radius:10px;' />");
-            html.append("<hr/><h2 style='text-align:right; color:#10b981;'>TỔNG CỘNG: ").append(String.format("%,.0f", order.getTotalAmount())).append(" đ</h2>");
-            html.append("<p style='text-align:center; color:#94a3b8; font-size:12px;'>Cảm ơn quý khách!</p>");
-            html.append("</div></div>");
-
-            helper.setText(html.toString(), true);
-            emailSender.send(mimeMessage);
-            return ResponseEntity.ok("Gửi mail thành công");
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Lỗi gửi mail: " + e.getMessage());
-        }
     }
 
     @PutMapping("/pay/{id}")
@@ -171,6 +180,7 @@ public ResponseEntity<?> sendEmailInvoice(@PathVariable Long id, @RequestBody Ma
         }
     }
 
+    @SuppressWarnings("unchecked")
     @PostMapping("/split")
     public ResponseEntity<?> splitOrder(@RequestBody Map<String, Object> payload) {
         try {
@@ -252,10 +262,10 @@ public ResponseEntity<?> sendEmailInvoice(@PathVariable Long id, @RequestBody Ma
             return ResponseEntity.status(500).body("Lỗi thống kê: " + e.getMessage());
         }
     }
+
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteOrder(@PathVariable Long id) {
         try {
-            
             orderRepository.deleteById(id);
             return ResponseEntity.ok("Đã xóa vĩnh viễn đơn hàng #" + id);
         } catch (Exception e) {
