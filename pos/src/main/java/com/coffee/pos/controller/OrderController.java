@@ -1,5 +1,6 @@
 package com.coffee.pos.controller;
 
+import org.springframework.scheduling.annotation.Async;
 import com.coffee.pos.entity.Order;
 import com.coffee.pos.entity.OrderItem;
 import com.coffee.pos.repository.OrderRepository;
@@ -7,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+
+
 import jakarta.mail.internet.MimeMessage; 
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
@@ -73,8 +76,9 @@ public class OrderController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/{id}/send-email")
-    public ResponseEntity<?> sendEmailInvoice(@PathVariable Long id, @RequestBody Map<String, String> payload) {
+    @Async
+@PostMapping("/{id}/send-email")
+public ResponseEntity<?> sendEmailInvoice(@PathVariable Long id, @RequestBody Map<String, String> payload) {
         try {
             Order order = orderRepository.findById(id).orElseThrow(() -> new Exception("Không thấy đơn"));
             String customerEmail = payload.get("email");
