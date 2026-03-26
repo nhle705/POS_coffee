@@ -38,13 +38,13 @@ public class Order {
     private String cancelReason;
 
     @Column(name = "payment_method")
-    private String paymentMethod; // "CASH", "CARD", "QR"
+    private String paymentMethod; 
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JsonManagedReference
     private List<OrderItem> items = new ArrayList<>();
 
-    // Tự động gán ngày giờ hiện tại trước khi lưu vào Database
+   
     @PrePersist
     protected void onCreate() {
         if (this.orderDate == null) {

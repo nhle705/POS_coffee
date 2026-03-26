@@ -13,7 +13,7 @@ public class MailService {
     @Autowired
     private JavaMailSender emailSender;
 
-    @Async // Tên lửa gắn ở đây là chuẩn nhất
+    @Async 
     public void sendEmailAsync(String to, String subject, String htmlContent) {
         try {
             MimeMessage mimeMessage = emailSender.createMimeMessage();

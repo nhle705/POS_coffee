@@ -3,7 +3,7 @@ package com.coffee.pos.controller;
 import com.coffee.pos.entity.Order;
 import com.coffee.pos.entity.OrderItem;
 import com.coffee.pos.repository.OrderRepository;
-import com.coffee.pos.service.MailService; // Import service mới
+import com.coffee.pos.service.MailService; 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,9 +20,9 @@ public class OrderController {
     private OrderRepository orderRepository;
 
     @Autowired
-    private MailService mailService; // Dùng Service thay vì gọi trực tiếp emailSender
+    private MailService mailService; 
 
-    // --- 1. LƯU ĐƠN HÀNG MỚI ---
+    
     @PostMapping("/create")
     public ResponseEntity<?> createOrder(@RequestBody Order order) {
         try {
@@ -43,31 +43,31 @@ public class OrderController {
         }
     }
 
-    // --- 2. GỬI MAIL HÓA ĐƠN (ĐÃ FIX ASYNC) ---
+    
     @PostMapping("/{id}/send-email")
     public ResponseEntity<?> sendEmailInvoice(@PathVariable Long id, @RequestBody Map<String, String> payload) {
         try {
             Order order = orderRepository.findById(id).orElseThrow(() -> new Exception("Không thấy đơn"));
             String customerEmail = payload.get("email");
             
-            // Tạo nội dung HTML
+           
             String qrUrl = "https://img.vietqr.io/image/MBBank-098722228888-compact2.png?amount=" 
                             + order.getTotalAmount() + "&addInfo=Thanh%20toan%20Huy%20Coffee%20" + id;
 
-            // --- TRONG HÀM sendEmailInvoice CỦA OrderController ---
+            
 
 StringBuilder html = new StringBuilder();
 html.append("<div style='background-color:#f1f5f9; padding:20px; font-family:sans-serif;'>");
 html.append("<div style='max-width:500px; margin:auto; background:#fff; border-radius:15px; padding:30px; box-shadow:0 4px 6px rgba(0,0,0,0.1);'>");
 html.append("<h1 style='color:#fbbf24; text-align:center; background:#0f172a; padding:20px; border-radius:10px; margin-bottom:20px;'>HUY COFFEE</h1>");
 
-// --- PHẦN CHI TIẾT MÓN ĂN (BỔ SUNG Ở ĐÂY) ---
+
 html.append("<h3 style='border-bottom:2px solid #f1f5f9; padding-bottom:10px;'>Chi tiết đơn hàng:</h3>");
 html.append("<table style='width:100%; border-collapse:collapse; margin-bottom:20px;'>");
 html.append("<thead><tr style='text-align:left; color:#64748b; font-size:14px;'><th>Món</th><th>SL</th><th>Giá</th></tr></thead>");
 html.append("<tbody>");
 
-// Vòng lặp lấy từng món trong đơn hàng của Huy
+
 if (order.getItems() != null) {
     for (OrderItem item : order.getItems()) {
         html.append("<tr style='border-bottom:1px solid #f1f5f9;'>");
@@ -79,7 +79,7 @@ if (order.getItems() != null) {
 }
 html.append("</tbody></table>");
 
-// --- PHẦN QR VÀ TỔNG TIỀN ---
+
 html.append("<div style='background:#f8fafc; padding:15px; border-radius:10px; text-align:center;'>");
 html.append("<p style='margin:0; color:#64748b;'>Quét mã để thanh toán nhanh:</p>");
 html.append("<img src='").append(qrUrl).append("' width='200' style='margin:15px auto; border-radius:10px;' />");
@@ -89,17 +89,17 @@ html.append("</div>");
 html.append("<p style='text-align:center; color:#94a3b8; font-size:12px; margin-top:20px;'>Cảm ơn quý khách đã ủng hộ Huy Coffee!</p>");
 html.append("</div></div>");
 
-// Cuối cùng gọi MailService để gửi (Giữ nguyên dòng cũ của ông)
+
 mailService.sendEmailAsync(customerEmail, "☕ Hóa đơn Huy Coffee - #" + id, html.toString());
 
-            // Trả về OK ngay lập tức, không đợi mail gửi xong
+          
             return ResponseEntity.ok("Hệ thống đang gửi mail ngầm, quý khách vui lòng kiểm tra sau ít giây.");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Lỗi xử lý yêu cầu: " + e.getMessage());
         }
     }
 
-    // --- CÁC HÀM KHÁC GIỮ NGUYÊN ---
+ 
     @GetMapping("/revenue")
     public ResponseEntity<?> getTotalRevenue() {
         try {

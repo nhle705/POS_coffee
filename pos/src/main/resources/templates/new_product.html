@@ -14,8 +14,11 @@
                 <input type="text" th:field="*{name}" class="form-control" placeholder="Ví dụ: Cà phê Muối" required>
             </div>
             <div class="mb-3">
-                <label class="form-label">Danh mục:</label>
-                <input type="text" th:field="*{category}" class="form-control" placeholder="Đồ uống/Thức ăn">
+                <label class="small text-secondary fw-bold">Danh mục:</label>
+<select id="product-category" class="form-control form-control-custom">
+    <option value="Đồ uống">Đồ uống</option>
+    <option value="Bánh">Thức ăn/Bánh</option>
+</select>
             </div>
             <div class="mb-3">
                 <label class="form-label">Giá tiền:</label>
