@@ -90,7 +90,7 @@ html.append("<p style='text-align:center; color:#94a3b8; font-size:12px; margin-
 html.append("</div></div>");
 
 
-mailService.sendEmailAsync(customerEmail, "☕ Hóa đơn Huy Coffee - #" + id, html.toString());
+mailService.sendEmailAsync(customerEmail, "☕ Hóa đơn Coffee - #" + id, html.toString());
 
           
             return ResponseEntity.ok("Hệ thống đang gửi mail ngầm, quý khách vui lòng kiểm tra sau ít giây.");
