@@ -6,7 +6,7 @@ Hệ thống quản lý bán hàng (POS) hiện đại tối ưu cho quán Cafe,
 
 ### 🔗 Quick Links
 - **🚀 Live Demo:** [https://pos-coffee-crdj.onrender.com](https://pos-coffee-crdj.onrender.com)
-- **📑 Báo cáo & Slide:** https://1drv.ms/w/c/c7fefecfa3239b3e/IQC0pzpxgi0DRpQVbGWElFr_AZlSGWF5dHCWoKQ4qGiRaJ0?e=9e0Qa0
+- **📑 Báo cáo & Slide:** [https://1drv.ms/w/c/c7fefecfa3239b3e/IQC0pzpxgi0DRpQVbGWElFr_AZlSGWF5dHCWoKQ4qGiRaJ0?e=9e0Qa0](https://1drv.ms/w/c/c7fefecfa3239b3e/IQARwkaIHWeeQ6_oEWRS1AN3AR08dxn7fnP-ce600rv-aUw?e=keovZW)
 - **👨‍💻 Mã nguồn:** https://github.com/nhle705/POS_coffee
 
 ---
